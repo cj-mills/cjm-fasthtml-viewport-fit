@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "cjm-fasthtml-viewport-fit"
+  site-url: "https://cj-mills.github.io/cjm-fasthtml-viewport-fit"
+  description: "Reusable viewport height measurement utility for FastHTML applications that dynamically fits element height to remaining viewport space with resize and HTMX integration."
+  repo-branch: main
+  repo-url: "https://github.com/cj-mills/cjm-fasthtml-viewport-fit"
