@@ -20,6 +20,7 @@ class ViewportFitConfig:
     debounce_ms: int = 100  # Resize debounce delay in milliseconds
     scroll_to_top: bool = True  # Scroll to (0,0) before measuring (for HTMX SPAs)
     enable_htmx_settle: bool = True  # Remeasure on htmx:afterSettle events
+    observe_siblings: bool = True  # Watch sibling elements for size changes via ResizeObserver
     resize_callback: str = ""  # Optional JS expression called after resize
     debug: bool = False  # Enable debug console logging by default
 
@@ -37,6 +38,11 @@ class ViewportFitConfig:
     def settle_handler_key(self) -> str:  # Window-level key for HTMX settle handler
         """Window-level key for HTMX settle handler cleanup."""
         return f"_vfSettleHandler_{self.namespace.replace('-', '_')}"
+
+    @property
+    def observer_key(self) -> str:  # Window-level key for ResizeObserver cleanup
+        """Window-level key for sibling ResizeObserver cleanup."""
+        return f"_vfSiblingObserver_{self.namespace.replace('-', '_')}"
 
     @property
     def debug_flag(self) -> str:  # JS window debug flag name

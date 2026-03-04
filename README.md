@@ -75,6 +75,7 @@ from cjm_fasthtml_viewport_fit.js import (
     generate_calculate_height_js,
     generate_resize_handler_js,
     generate_htmx_settle_js,
+    generate_sibling_observer_js,
     generate_init_js,
     generate_viewport_fit_js
 )
@@ -118,6 +119,13 @@ def generate_htmx_settle_js(
 ```
 
 ``` python
+def generate_sibling_observer_js(
+    config: ViewportFitConfig,  # Instance configuration
+) -> str:  # JS for ResizeObserver on target siblings (empty if disabled)
+    "Generate ResizeObserver that watches target's siblings for size changes."
+```
+
+``` python
 def generate_init_js(
     config: ViewportFitConfig,  # Instance configuration
 ) -> str:  # JS initialization block
@@ -157,6 +165,7 @@ class ViewportFitConfig:
     debounce_ms: int = 100  # Resize debounce delay in milliseconds
     scroll_to_top: bool = True  # Scroll to (0,0) before measuring (for HTMX SPAs)
     enable_htmx_settle: bool = True  # Remeasure on htmx:afterSettle events
+    observe_siblings: bool = True  # Watch sibling elements for size changes via ResizeObserver
     resize_callback: str = ''  # Optional JS expression called after resize
     debug: bool = False  # Enable debug console logging by default
     
@@ -181,8 +190,16 @@ class ViewportFitConfig:
             return f"_vfSettleHandler_{self.namespace.replace('-', '_')}"
     
         @property
-        def debug_flag(self) -> str:  # JS window debug flag name
+        def observer_key(self) -> str:  # Window-level key for ResizeObserver cleanup
         "Window-level key for HTMX settle handler cleanup."
+    
+    def observer_key(self) -> str:  # Window-level key for ResizeObserver cleanup
+            """Window-level key for sibling ResizeObserver cleanup."""
+            return f"_vfSiblingObserver_{self.namespace.replace('-', '_')}"
+    
+        @property
+        def debug_flag(self) -> str:  # JS window debug flag name
+        "Window-level key for sibling ResizeObserver cleanup."
     
     def debug_flag(self) -> str:  # JS window debug flag name
             """Window-level debug flag name."""

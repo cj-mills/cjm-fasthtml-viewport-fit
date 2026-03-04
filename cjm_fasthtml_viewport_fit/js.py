@@ -4,7 +4,7 @@
 
 # %% auto #0
 __all__ = ['generate_debug_helpers_js', 'generate_space_below_js', 'generate_calculate_height_js', 'generate_resize_handler_js',
-           'generate_htmx_settle_js', 'generate_init_js', 'generate_viewport_fit_js']
+           'generate_htmx_settle_js', 'generate_sibling_observer_js', 'generate_init_js', 'generate_viewport_fit_js']
 
 # %% ../nbs/js.ipynb #f7fb3572
 from .models import ViewportFitConfig
@@ -199,6 +199,46 @@ def generate_htmx_settle_js(
     document.body.addEventListener('htmx:afterSettle', _onSettle);
 """
 
+# %% ../nbs/js.ipynb #atxkaq5vfst
+def generate_sibling_observer_js(
+    config: ViewportFitConfig,  # Instance configuration
+) -> str:  # JS for ResizeObserver on target siblings (empty if disabled)
+    """Generate ResizeObserver that watches target's siblings for size changes."""
+    if not config.observe_siblings:
+        return ""
+
+    return f"""
+    (function() {{
+        const target = document.getElementById('{config.target_id}');
+        if (!target || !target.parentElement) return;
+
+        // Disconnect previous observer if script re-executes (HTMX navigation)
+        if (window.{config.observer_key}) {{
+            window.{config.observer_key}.disconnect();
+        }}
+
+        const _debouncedRecalc = _debounce(function() {{
+            _log('sibling resize detected, recalculating');
+            _calculateAndSetHeight();
+        }}, {config.debounce_ms});
+
+        const observer = new ResizeObserver(_debouncedRecalc);
+
+        // Observe all visible siblings (not the target itself)
+        for (const sibling of target.parentElement.children) {{
+            if (sibling === target) continue;
+            const tag = sibling.tagName;
+            if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+            if (tag === 'INPUT' && sibling.type === 'hidden') continue;
+            if (getComputedStyle(sibling).display === 'none') continue;
+            observer.observe(sibling);
+            _log('observing sibling:', tag + '#' + (sibling.id || '(no id)'));
+        }}
+
+        window.{config.observer_key} = observer;
+    }})();
+"""
+
 # %% ../nbs/js.ipynb #342a0a6b
 def generate_init_js(
     config: ViewportFitConfig,  # Instance configuration
@@ -226,6 +266,7 @@ def generate_viewport_fit_js(
         generate_calculate_height_js(config),
         generate_resize_handler_js(config),
         generate_htmx_settle_js(config),
+        generate_sibling_observer_js(config),
         f"    window.{config.recalc_fn} = _calculateAndSetHeight;",
         generate_init_js(config),
     ]
