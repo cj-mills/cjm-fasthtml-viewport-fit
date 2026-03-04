@@ -185,9 +185,13 @@ def generate_htmx_settle_js(
     if not config.enable_htmx_settle:
         return ""
 
+    # Re-setup sibling observer after HTMX swaps replace DOM elements
+    observer_setup = "if (typeof _setupSiblingObserver === 'function') _setupSiblingObserver();" if config.observe_siblings else ""
+
     return f"""
     function _onSettle() {{
         requestAnimationFrame(function() {{
+            {observer_setup}
             _calculateAndSetHeight();
         }});
     }}
@@ -208,11 +212,11 @@ def generate_sibling_observer_js(
         return ""
 
     return f"""
-    (function() {{
+    function _setupSiblingObserver() {{
         const target = document.getElementById('{config.target_id}');
         if (!target || !target.parentElement) return;
 
-        // Disconnect previous observer if script re-executes (HTMX navigation)
+        // Disconnect previous observer (handles re-setup after HTMX swaps)
         if (window.{config.observer_key}) {{
             window.{config.observer_key}.disconnect();
         }}
@@ -236,7 +240,7 @@ def generate_sibling_observer_js(
         }}
 
         window.{config.observer_key} = observer;
-    }})();
+    }}
 """
 
 # %% ../nbs/js.ipynb #342a0a6b
@@ -245,12 +249,14 @@ def generate_init_js(
 ) -> str:  # JS initialization block
     """Generate JS for initial measurement on script execution."""
     scroll_line = "window.scrollTo(0, 0);" if config.scroll_to_top else ""
+    observer_setup = "_setupSiblingObserver();" if config.observe_siblings else ""
 
     return f"""
     requestAnimationFrame(function() {{
         setTimeout(function() {{
             {scroll_line}
             _calculateAndSetHeight();
+            {observer_setup}
         }}, 50);
     }});
 """
