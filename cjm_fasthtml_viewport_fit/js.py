@@ -156,25 +156,24 @@ def generate_calculate_height_js(
 # %% ../nbs/js.ipynb #f5da14e9
 def generate_resize_handler_js(
     config: ViewportFitConfig,  # Instance configuration
-) -> str:  # JS for debounced resize listener with cleanup
-    """Generate debounced window resize handler with HTMX-safe cleanup."""
+) -> str:  # JS for synchronous resize listener with cleanup
+    """Generate synchronous window resize handler with HTMX-safe cleanup."""
     callback_line = f"\n        {config.resize_callback}" if config.resize_callback else ""
 
     return f"""
-    function _debounce(fn, delay) {{
-        let tid;
-        return function(...args) {{ clearTimeout(tid); tid = setTimeout(() => fn.apply(this, args), delay); }};
-    }}
-
-    const _debouncedResize = _debounce(function() {{
+    let _resizing = false;
+    function _onWindowResize() {{
+        if (_resizing) return;
+        _resizing = true;
         _calculateAndSetHeight();{callback_line}
-    }}, {config.debounce_ms});
+        _resizing = false;
+    }}
 
     if (window.{config.handler_key}) {{
         window.removeEventListener('resize', window.{config.handler_key});
     }}
-    window.{config.handler_key} = _debouncedResize;
-    window.addEventListener('resize', _debouncedResize);
+    window.{config.handler_key} = _onWindowResize;
+    window.addEventListener('resize', _onWindowResize);
 """
 
 # %% ../nbs/js.ipynb #0b46ebd5

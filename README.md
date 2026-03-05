@@ -107,8 +107,8 @@ def generate_calculate_height_js(
 ``` python
 def generate_resize_handler_js(
     config: ViewportFitConfig,  # Instance configuration
-) -> str:  # JS for debounced resize listener with cleanup
-    "Generate debounced window resize handler with HTMX-safe cleanup."
+) -> str:  # JS for synchronous resize listener with cleanup
+    "Generate synchronous window resize handler with HTMX-safe cleanup."
 ```
 
 ``` python
