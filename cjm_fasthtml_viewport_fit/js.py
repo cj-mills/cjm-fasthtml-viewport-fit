@@ -206,8 +206,8 @@ def generate_htmx_settle_js(
 # %% ../nbs/js.ipynb #atxkaq5vfst
 def generate_sibling_observer_js(
     config: ViewportFitConfig,  # Instance configuration
-) -> str:  # JS for ResizeObserver on target siblings (empty if disabled)
-    """Generate ResizeObserver that watches target's siblings for size changes."""
+) -> str:  # JS for ResizeObserver on ancestor-level siblings (empty if disabled)
+    """Generate ResizeObserver that walks the DOM tree and watches visible siblings at all ancestor levels."""
     if not config.observe_siblings:
         return ""
 
@@ -222,21 +222,32 @@ def generate_sibling_observer_js(
         }}
 
         const _debouncedRecalc = _debounce(function() {{
-            _log('sibling resize detected, recalculating');
+            _log('layout change detected, recalculating');
             _calculateAndSetHeight();
         }}, {config.debounce_ms});
 
         const observer = new ResizeObserver(_debouncedRecalc);
 
-        // Observe all visible siblings (not the target itself)
-        for (const sibling of target.parentElement.children) {{
-            if (sibling === target) continue;
-            const tag = sibling.tagName;
-            if (tag === 'SCRIPT' || tag === 'STYLE') continue;
-            if (tag === 'INPUT' && sibling.type === 'hidden') continue;
-            if (getComputedStyle(sibling).display === 'none') continue;
-            observer.observe(sibling);
-            _log('observing sibling:', tag + '#' + (sibling.id || '(no id)'));
+        // Walk up the DOM tree mirroring _calculateSpaceBelow —
+        // observe visible siblings at every ancestor level so that
+        // changes anywhere in the layout trigger recalculation.
+        let currentElement = target;
+        let parent = target.parentElement;
+        let level = 0;
+
+        while (parent && parent !== document.documentElement) {{
+            for (const sibling of parent.children) {{
+                if (sibling === currentElement) continue;
+                const tag = sibling.tagName;
+                if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+                if (tag === 'INPUT' && sibling.type === 'hidden') continue;
+                if (getComputedStyle(sibling).display === 'none') continue;
+                observer.observe(sibling);
+                _log('observing L' + level + ':', tag + '#' + (sibling.id || '(no id)'));
+            }}
+            currentElement = parent;
+            parent = parent.parentElement;
+            level++;
         }}
 
         window.{config.observer_key} = observer;

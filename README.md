@@ -26,8 +26,8 @@ graph LR
     js[js<br/>js]
     models[models<br/>models]
 
-    components --> models
     components --> js
+    components --> models
     js --> models
 ```
 
@@ -121,8 +121,8 @@ def generate_htmx_settle_js(
 ``` python
 def generate_sibling_observer_js(
     config: ViewportFitConfig,  # Instance configuration
-) -> str:  # JS for ResizeObserver on target siblings (empty if disabled)
-    "Generate ResizeObserver that watches target's siblings for size changes."
+) -> str:  # JS for ResizeObserver on ancestor-level siblings (empty if disabled)
+    "Generate ResizeObserver that walks the DOM tree and watches visible siblings at all ancestor levels."
 ```
 
 ``` python
