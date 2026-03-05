@@ -221,12 +221,21 @@ def generate_sibling_observer_js(
             window.{config.observer_key}.disconnect();
         }}
 
-        const _debouncedRecalc = _debounce(function() {{
-            _log('layout change detected, recalculating');
-            _calculateAndSetHeight();
-        }}, {config.debounce_ms});
+        // RAF coalescing — respond in the next frame (~16ms) instead of
+        // debouncing (~100ms). Allows smooth tracking of sibling animations.
+        // ResizeObserver callbacks are already batched by the browser.
+        let _recalcPending = false;
+        const _rafRecalc = function() {{
+            if (_recalcPending) return;
+            _recalcPending = true;
+            requestAnimationFrame(function() {{
+                _recalcPending = false;
+                _log('layout change detected, recalculating');
+                _calculateAndSetHeight();
+            }});
+        }};
 
-        const observer = new ResizeObserver(_debouncedRecalc);
+        const observer = new ResizeObserver(_rafRecalc);
 
         // Walk up the DOM tree mirroring _calculateSpaceBelow —
         // observe visible siblings at every ancestor level so that
