@@ -210,7 +210,15 @@ def generate_sibling_observer_js(
     if not config.observe_siblings:
         return ""
 
-    callback_line = f"\n            {config.resize_callback}" if config.resize_callback else ""
+    if config.resize_callback:
+        save_height = "const _prevHeight = target ? target.style.height : '';"
+        callback_block = f"""
+            if (target && target.style.height !== _prevHeight) {{
+                {config.resize_callback}
+            }}"""
+    else:
+        save_height = ""
+        callback_block = ""
 
     return f"""
     function _setupSiblingObserver() {{
@@ -229,8 +237,9 @@ def generate_sibling_observer_js(
         const _onResize = function() {{
             if (_recalculating) return;
             _recalculating = true;
+            {save_height}
             _log('layout change detected, recalculating');
-            _calculateAndSetHeight();{callback_line}
+            _calculateAndSetHeight();{callback_block}
             _recalculating = false;
         }};
 
