@@ -1,124 +1,191 @@
 """Demo application for cjm-fasthtml-viewport-fit library.
 
-Demonstrates viewport-fit height measurement with two observation scenarios:
-- L0: Direct sibling toggle (info bar beside the target)
-- L1: Ancestor-level sibling toggle (header above the target's wrapper)
-
-The target is nested inside a wrapper div to test that the ancestor-walking
-sibling observer correctly detects changes at all DOM levels.
+Showcases viewport-fit height measurement with multiple demo configurations.
+Each demo is a self-contained module in the demos/ package.
 
 Run with: python demo_app.py
 """
 
-from fasthtml.common import fast_app, Div, H1, H2, P, Span, Button, Script, serve
-
-from cjm_fasthtml_viewport_fit.models import ViewportFitConfig
-from cjm_fasthtml_viewport_fit.components import render_viewport_fit_script
-
 
 DEMO_PORT = 5040
 
-config = ViewportFitConfig(
-    namespace="demo",
-    target_id="demo-target",
-    debug=True,
-)
 
-app, rt = fast_app(
-    pico=False,
-    title="Viewport Fit Demo",
-)
+def main():
+    """Initialize viewport-fit demos and start the server."""
+    from fasthtml.common import fast_app, Div, H1, H2, P, Span, A, APIRouter
 
+    from cjm_fasthtml_daisyui.core.resources import get_daisyui_headers
+    from cjm_fasthtml_daisyui.core.testing import create_theme_persistence_script
+    from cjm_fasthtml_daisyui.components.data_display.card import card, card_body
+    from cjm_fasthtml_daisyui.components.data_display.badge import badge
+    from cjm_fasthtml_daisyui.utilities.semantic_colors import bg_dui, text_dui
+    from cjm_fasthtml_daisyui.components.actions.button import btn, btn_colors
 
-@rt("/")
-def get():
-    """Demo page with nested target to test ancestor-level sibling observation."""
-    content_items = [
-        P(f"Item {i + 1}: Sample content that fills the viewport-fitted area",
-          style="padding: 8px; margin: 4px 0; background: #f0f0ff; border-radius: 4px;")
-        for i in range(50)
-    ]
+    from cjm_fasthtml_tailwind.utilities.spacing import p, m
+    from cjm_fasthtml_tailwind.utilities.sizing import container, max_w
+    from cjm_fasthtml_tailwind.utilities.typography import font_size, font_weight, text_align
+    from cjm_fasthtml_tailwind.utilities.flexbox_and_grid import grid_display, grid_cols, gap
+    from cjm_fasthtml_tailwind.core.base import combine_classes
 
-    return Div(
-        # Header with toggle (L1 sibling — sibling of the content wrapper, not the target)
-        Div(
-            Div(
-                H1("Viewport Fit Demo", style="margin: 0; display: inline;"),
-                Button("Toggle Header Info (L1)",
-                       onclick="document.getElementById('header-extra').style.display = "
-                               "document.getElementById('header-extra').style.display === 'none' ? 'block' : 'none';",
-                       style="margin-left: 16px; padding: 4px 12px; cursor: pointer;"),
-                style="display: flex; align-items: center;",
-            ),
-            P("The blue area fills the remaining viewport height. "
-              "Toggle buttons add/remove content to test sibling observation at different DOM levels. "
-              "Check the console for debug output.",
-              style="margin: 8px 0 0 0;"),
-            Div(
-                P("This extra header content is a L1 ancestor-level sibling of the target. "
-                  "The target is nested inside a wrapper div, so this element is NOT a direct sibling. "
-                  "The ancestor-walking observer detects this change.",
-                  style="margin: 4px 0; color: #555;"),
-                P("With the old direct-sibling-only observer, toggling this would NOT trigger "
-                  "a recalculation. With the ancestor-walking observer, it does.",
-                  style="margin: 4px 0; color: #555;"),
-                id="header-extra",
-                style="display: none; padding: 8px; background: #fff3cd; border: 1px solid #ffc107; "
-                      "border-radius: 4px; margin-top: 8px;",
-            ),
-            id="demo-header",
-            style="padding: 16px; background: #e8e8e8; border-bottom: 2px solid #ccc;",
-        ),
+    from cjm_fasthtml_app_core.components.navbar import create_navbar
+    from cjm_fasthtml_app_core.core.routing import register_routes
+    from cjm_fasthtml_app_core.core.htmx import handle_htmx_request
+    from cjm_fasthtml_app_core.core.layout import wrap_with_layout
 
-        # Content wrapper (adds one level of nesting)
-        Div(
-            # Info bar with toggle (L0 sibling — direct sibling of the target)
-            Div(
-                Span("Info bar (direct sibling of target)", style="font-size: 14px;"),
-                Button("Toggle Details (L0)",
-                       onclick="document.getElementById('info-extra').style.display = "
-                               "document.getElementById('info-extra').style.display === 'none' ? 'block' : 'none';",
-                       style="margin-left: 12px; padding: 4px 12px; cursor: pointer;"),
-                Div(
-                    P("This extra detail is a L0 direct sibling expansion. "
-                      "Both old and new observer implementations detect this change.",
-                      style="margin: 4px 0; color: #555;"),
-                    id="info-extra",
-                    style="display: none; padding: 8px; background: #d4edda; border: 1px solid #28a745; "
-                          "border-radius: 4px; margin-top: 4px;",
-                ),
-                id="demo-info-bar",
-                style="padding: 8px 16px; background: #f8f9fa; border-bottom: 1px solid #dee2e6; "
-                      "display: flex; align-items: center; flex-wrap: wrap; gap: 4px;",
-            ),
+    import demos.sibling_observer as sibling_demo
 
-            # Target element (nested inside wrapper — will be fitted to viewport)
-            Div(
-                *content_items,
-                id="demo-target",
-                style="overflow-y: auto; background: #e0e0ff; border: 2px solid #88f; padding: 8px;",
-            ),
+    print("\n" + "=" * 70)
+    print("Initializing cjm-fasthtml-viewport-fit Demo")
+    print("=" * 70)
 
-            id="demo-content-wrapper",
-            style="display: flex; flex-direction: column; flex: 1;",
-        ),
-
-        # Footer (L1 sibling — below the content wrapper)
-        Div(
-            Span("Footer: This should always be visible at the bottom of the viewport.",
-                 style="font-size: 14px; color: #666;"),
-            style="padding: 12px; background: #e8e8e8; border-top: 2px solid #ccc; text-align: center;",
-        ),
-
-        # Viewport fit script
-        render_viewport_fit_script(config),
-
-        style="display: flex; flex-direction: column;",
+    app, rt = fast_app(
+        pico=False,
+        hdrs=[*get_daisyui_headers(), create_theme_persistence_script()],
+        title="Viewport Fit Demo",
+        htmlkw={'data-theme': 'light'},
+        secret_key="demo-secret-key"
     )
+
+    router = APIRouter(prefix="")
+
+    # -------------------------------------------------------------------------
+    # Set up demos
+    # -------------------------------------------------------------------------
+
+    sibling = sibling_demo.setup()
+    print(f"  Sibling observer demo: {sibling['title']}")
+
+    # -------------------------------------------------------------------------
+    # Page routes
+    # -------------------------------------------------------------------------
+
+    @router
+    def index(request):
+        """Homepage with demo overview."""
+
+        def home_content():
+            return Div(
+                H1("Viewport Fit Demo",
+                   cls=combine_classes(font_size._4xl, font_weight.bold, m.b(4))),
+
+                P("Reusable viewport height measurement for FastHTML applications. "
+                  "Dynamically fits element height to remaining viewport space "
+                  "with resize and HTMX integration.",
+                  cls=combine_classes(font_size.lg, text_dui.base_content, m.b(8))),
+
+                # Demo cards
+                Div(
+                    _demo_card(
+                        sibling['title'],
+                        sibling['description'],
+                        badges=sibling['badges'],
+                        href=demo_sibling.to(),
+                    ),
+                    cls=combine_classes(
+                        grid_display, grid_cols(1), grid_cols(2).md, gap(6), m.b(8)
+                    )
+                ),
+
+                # Features section
+                Div(
+                    H2("Features",
+                       cls=combine_classes(font_size._2xl, font_weight.bold, m.b(4))),
+                    Div(
+                        P("Collapse-measure-apply height calculation", cls=m.b(1)),
+                        P("Ancestor-walking sibling observer (ResizeObserver)", cls=m.b(1)),
+                        P("Window resize handler with re-entrance guard", cls=m.b(1)),
+                        P("HTMX afterSettle integration for SPA navigation", cls=m.b(1)),
+                        P("Namespace isolation for multiple instances", cls=m.b(1)),
+                        P("Optional resize callback for consumer integration", cls=m.b(1)),
+                        P("Debug logging via window flag", cls=m.b(1)),
+                        cls=combine_classes(text_align.left, max_w.md, m.x.auto, font_size.sm)
+                    ),
+                    cls=m.b(8)
+                ),
+
+                cls=combine_classes(
+                    container, max_w._5xl, m.x.auto, p(8), text_align.center
+                )
+            )
+
+        return handle_htmx_request(
+            request, home_content,
+            wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
+        )
+
+    def _demo_card(title, description, badges, href):
+        """Render a demo card for the homepage."""
+        return Div(
+            Div(
+                H2(title, cls=combine_classes(font_size.xl, font_weight.semibold, m.b(2))),
+                P(description, cls=combine_classes(text_dui.base_content, m.b(4))),
+                Div(
+                    *[Span(label, cls=combine_classes(badge, color, m.r(2)))
+                      for label, color in badges],
+                    cls=m.b(4)
+                ),
+                A("Open Demo", href=href, cls=combine_classes(btn, btn_colors.primary)),
+                cls=card_body
+            ),
+            cls=combine_classes(card, bg_dui.base_200)
+        )
+
+    @router
+    def demo_sibling(request):
+        """Sibling observer demo page."""
+        return handle_htmx_request(
+            request, sibling['page_content'],
+            wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
+        )
+
+    # -------------------------------------------------------------------------
+    # Navbar & route registration
+    # -------------------------------------------------------------------------
+
+    navbar = create_navbar(
+        title="Viewport Fit Demo",
+        nav_items=[
+            ("Home", index),
+            ("Sibling Observer", demo_sibling),
+        ],
+        home_route=index,
+        theme_selector=True
+    )
+
+    register_routes(app, router)
+
+    # Debug output
+    print("\n" + "=" * 70)
+    print("Registered Routes:")
+    print("=" * 70)
+    for route in app.routes:
+        if hasattr(route, 'path'):
+            print(f"  {route.path}")
+    print("=" * 70)
+    print("Demo App Ready!")
+    print("=" * 70 + "\n")
+
+    return app
 
 
 if __name__ == "__main__":
-    print(f"\nViewport Fit Demo: http://localhost:{DEMO_PORT}")
-    print(f"  Open browser console to see debug output")
-    print(f"  Toggle buttons test L0 (direct) and L1 (ancestor) sibling observation\n")
-    serve(port=DEMO_PORT)
+    import uvicorn
+    import webbrowser
+    import threading
+
+    app = main()
+
+    port = DEMO_PORT
+    host = "0.0.0.0"
+    display_host = 'localhost' if host in ['0.0.0.0', '127.0.0.1'] else host
+
+    print(f"Server: http://{display_host}:{port}")
+    print(f"\n  http://{display_host}:{port}/              — Homepage")
+    print(f"  http://{display_host}:{port}/demo_sibling  — Sibling observer demo")
+    print()
+
+    timer = threading.Timer(1.5, lambda: webbrowser.open(f"http://localhost:{port}"))
+    timer.daemon = True
+    timer.start()
+
+    uvicorn.run(app, host=host, port=port)
