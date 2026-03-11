@@ -33,6 +33,7 @@ def main():
     from cjm_fasthtml_app_core.core.layout import wrap_with_layout
 
     import demos.sibling_observer as sibling_demo
+    import demos.table_layout as table_demo
 
     print("\n" + "=" * 70)
     print("Initializing cjm-fasthtml-viewport-fit Demo")
@@ -53,7 +54,9 @@ def main():
     # -------------------------------------------------------------------------
 
     sibling = sibling_demo.setup()
+    table = table_demo.setup()
     print(f"  Sibling observer demo: {sibling['title']}")
+    print(f"  Table layout demo: {table['title']}")
 
     # -------------------------------------------------------------------------
     # Page routes
@@ -80,6 +83,12 @@ def main():
                         sibling['description'],
                         badges=sibling['badges'],
                         href=demo_sibling.to(),
+                    ),
+                    _demo_card(
+                        table['title'],
+                        table['description'],
+                        badges=table['badges'],
+                        href=demo_table.to(),
                     ),
                     cls=combine_classes(
                         grid_display, grid_cols(1), grid_cols(2).md, gap(6), m.b(8)
@@ -138,6 +147,14 @@ def main():
             wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
         )
 
+    @router
+    def demo_table(request):
+        """Table layout prototype demo page."""
+        return handle_htmx_request(
+            request, table['page_content'],
+            wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
+        )
+
     # -------------------------------------------------------------------------
     # Navbar & route registration
     # -------------------------------------------------------------------------
@@ -147,12 +164,13 @@ def main():
         nav_items=[
             ("Home", index),
             ("Sibling Observer", demo_sibling),
+            ("Table Layout", demo_table),
         ],
         home_route=index,
         theme_selector=True
     )
 
-    register_routes(app, router)
+    register_routes(app, router, table['router'])
 
     # Debug output
     print("\n" + "=" * 70)
@@ -182,6 +200,7 @@ if __name__ == "__main__":
     print(f"Server: http://{display_host}:{port}")
     print(f"\n  http://{display_host}:{port}/              — Homepage")
     print(f"  http://{display_host}:{port}/demo_sibling  — Sibling observer demo")
+    print(f"  http://{display_host}:{port}/demo_table   — Table layout prototype")
     print()
 
     timer = threading.Timer(1.5, lambda: webbrowser.open(f"http://localhost:{port}"))
