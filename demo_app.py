@@ -34,6 +34,7 @@ def main():
 
     import demos.sibling_observer as sibling_demo
     import demos.table_layout as table_demo
+    import demos.constrained as constrained_demo
 
     print("\n" + "=" * 70)
     print("Initializing cjm-fasthtml-viewport-fit Demo")
@@ -55,8 +56,10 @@ def main():
 
     sibling = sibling_demo.setup()
     table = table_demo.setup()
+    constrained = constrained_demo.setup()
     print(f"  Sibling observer demo: {sibling['title']}")
     print(f"  Table layout demo: {table['title']}")
+    print(f"  Constrained demo: {constrained['title']}")
 
     # -------------------------------------------------------------------------
     # Page routes
@@ -90,8 +93,14 @@ def main():
                         badges=table['badges'],
                         href=demo_table.to(),
                     ),
+                    _demo_card(
+                        constrained['title'],
+                        constrained['description'],
+                        badges=constrained['badges'],
+                        href=demo_constrained.to(),
+                    ),
                     cls=combine_classes(
-                        grid_display, grid_cols(1), grid_cols(2).md, gap(6), m.b(8)
+                        grid_display, grid_cols(1), grid_cols(3).md, gap(6), m.b(8)
                     )
                 ),
 
@@ -155,6 +164,14 @@ def main():
             wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
         )
 
+    @router
+    def demo_constrained(request):
+        """Constrained container demo page."""
+        return handle_htmx_request(
+            request, constrained['page_content'],
+            wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
+        )
+
     # -------------------------------------------------------------------------
     # Navbar & route registration
     # -------------------------------------------------------------------------
@@ -165,6 +182,7 @@ def main():
             ("Home", index),
             ("Sibling Observer", demo_sibling),
             ("Table Layout", demo_table),
+            ("Constrained", demo_constrained),
         ],
         home_route=index,
         theme_selector=True

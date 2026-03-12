@@ -26,6 +26,12 @@ def generate_space_below_js(
     config: ViewportFitConfig,  # Instance configuration
 ) -> str:  # JS function for DOM-walking space measurement
     """Generate JS that walks the DOM tree to measure space below a target element."""
+    # Break after processing container level (if set)
+    if config.container_id:
+        container_break = "if (parent === _container) break;"
+    else:
+        container_break = ""
+
     return f"""
     function _calculateSpaceBelow(target) {{
         let spaceBelow = 0;
@@ -70,6 +76,8 @@ def generate_space_below_js(
 
             spaceBelow += paddingBottom + borderBottom + marginBottom;
 
+            {container_break}
+
             currentElement = parent;
             currentRect = parent.getBoundingClientRect();
             parent = parent.parentElement;
@@ -93,6 +101,23 @@ def generate_calculate_height_js(
         inner_lookup = ""
         inner_collapse = ""
         inner_apply = ""
+
+    # Container mode: measure against container instead of viewport
+    if config.container_id:
+        ceiling_js = """
+        const containerRect = _container.getBoundingClientRect();
+        const availableHeight = containerRect.height;
+        const spaceAbove = targetRect.top - containerRect.top;
+        """
+        ceiling_label = "containerHeight"
+        ceiling_var = "availableHeight"
+    else:
+        ceiling_js = """
+        const availableHeight = window.innerHeight;
+        const spaceAbove = targetRect.top;
+        """
+        ceiling_label = "windowHeight"
+        ceiling_var = "availableHeight"
 
     return f"""
     function _calculateAndSetHeight() {{
@@ -121,7 +146,7 @@ def generate_calculate_height_js(
 
         // Measure positions with collapsed target
         const targetRect = target.getBoundingClientRect();
-        const spaceAbove = targetRect.top;
+        {ceiling_js}
         const spaceBelow = _calculateSpaceBelow(target);
 
         // Collapsed target may still have non-zero height from padding/border.
@@ -132,11 +157,10 @@ def generate_calculate_height_js(
         const targetBoxSizing = getComputedStyle(target).boxSizing;
         const boxAdjust = targetBoxSizing === 'border-box' ? 0 : collapsedHeight;
 
-        const windowHeight = window.innerHeight;
-        const rawHeight = windowHeight - spaceAbove - spaceBelow - boxAdjust;
+        const rawHeight = {ceiling_var} - spaceAbove - spaceBelow - boxAdjust;
         const viewportHeight = Math.floor(Math.max({config.min_height}, rawHeight));
 
-        _log('windowHeight:', windowHeight);
+        _log('{ceiling_label}:', {ceiling_var});
         _log('spaceAbove:', spaceAbove);
         _log('spaceBelow:', spaceBelow);
         _log('collapsedHeight:', collapsedHeight, '(boxSizing:', targetBoxSizing + ', adjust:', boxAdjust + ')');
@@ -220,6 +244,19 @@ def generate_sibling_observer_js(
         save_height = ""
         callback_block = ""
 
+    # Break after processing container level (if set), and observe container itself
+    if config.container_id:
+        container_break = "if (parent === _container) break;"
+        observe_container = """
+        // Also observe the container itself — recalculate if it resizes
+        if (_container) {
+            observer.observe(_container);
+            _log('observing container:', _container.tagName + '#' + (_container.id || '(no id)'));
+        }"""
+    else:
+        container_break = ""
+        observe_container = ""
+
     return f"""
     function _setupSiblingObserver() {{
         const target = document.getElementById('{config.target_id}');
@@ -262,10 +299,14 @@ def generate_sibling_observer_js(
                 observer.observe(sibling);
                 _log('observing L' + level + ':', tag + '#' + (sibling.id || '(no id)'));
             }}
+
+            {container_break}
+
             currentElement = parent;
             parent = parent.parentElement;
             level++;
         }}
+        {observe_container}
 
         window.{config.observer_key} = observer;
     }}
@@ -294,8 +335,15 @@ def generate_viewport_fit_js(
     config: ViewportFitConfig,  # Instance configuration
 ) -> str:  # Complete JS code as a self-contained IIFE
     """Generate the complete viewport-fit JS as a self-contained IIFE."""
+    # Container lookup (if container_id is set)
+    if config.container_id:
+        container_lookup = f"    const _container = document.getElementById('{config.container_id}');"
+    else:
+        container_lookup = ""
+
     parts = [
         generate_debug_helpers_js(config),
+        container_lookup,
         generate_space_below_js(config),
         generate_calculate_height_js(config),
         generate_resize_handler_js(config),

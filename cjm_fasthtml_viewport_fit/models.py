@@ -16,6 +16,7 @@ class ViewportFitConfig:
     namespace: str  # Unique prefix for JS isolation (e.g., "source_select")
     target_id: str  # HTML ID of the element to fit to viewport height
     inner_id: str = ""  # Optional child element that also receives the calculated height
+    container_id: str = ""  # Optional container element — measure against this instead of viewport
     min_height: int = 200  # Minimum height in pixels
     debounce_ms: int = 100  # Resize debounce delay in milliseconds
     scroll_to_top: bool = True  # Scroll to (0,0) before measuring (for HTMX SPAs)
