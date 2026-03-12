@@ -48,33 +48,42 @@ def generate_space_below_js(
 
             _log(`spaceBelow L${{level}}: parent=${{parent.tagName}}#${{parent.id || '(no id)'}}, padding=${{paddingBottom}}, border=${{borderBottom}}, margin=${{marginBottom}}`);
 
-            let foundCurrent = false;
-            for (const sibling of parent.children) {{
-                if (sibling === currentElement) {{ foundCurrent = true; continue; }}
-                if (!foundCurrent) continue;
-                if (sibling.nodeType !== Node.ELEMENT_NODE) continue;
-                const tag = sibling.tagName;
-                if (tag === 'SCRIPT' || tag === 'STYLE') continue;
-                if (tag === 'INPUT' && sibling.type === 'hidden') continue;
-                const s = getComputedStyle(sibling);
-                if (s.display === 'none') continue;
+            // Flex-row parents only have beside siblings — skip all
+            const flexDir = parentStyles.flexDirection || '';
+            const isFlexRow = parentStyles.display.includes('flex')
+                && (flexDir === 'row' || flexDir === 'row-reverse');
 
-                const siblingRect = sibling.getBoundingClientRect();
+            if (!isFlexRow) {{
+                let foundCurrent = false;
+                for (const sibling of parent.children) {{
+                    if (sibling === currentElement) {{ foundCurrent = true; continue; }}
+                    if (!foundCurrent) continue;
+                    if (sibling.nodeType !== Node.ELEMENT_NODE) continue;
+                    const tag = sibling.tagName;
+                    if (tag === 'SCRIPT' || tag === 'STYLE') continue;
+                    if (tag === 'INPUT' && sibling.type === 'hidden') continue;
+                    const s = getComputedStyle(sibling);
+                    if (s.display === 'none') continue;
 
-                // Skip siblings beside (not below) in flex/grid rows
-                if (siblingRect.top < currentRect.bottom) {{
-                    _log(`  skip (beside): ${{tag}}#${{sibling.id || '(no id)'}}, top=${{siblingRect.top}} < bottom=${{currentRect.bottom}}`);
-                    continue;
+                    const siblingRect = sibling.getBoundingClientRect();
+
+                    // Skip siblings beside (not below) in flex/grid rows
+                    if (siblingRect.top < currentRect.bottom) {{
+                        _log(`  skip (beside): ${{tag}}#${{sibling.id || '(no id)'}}, top=${{siblingRect.top}} < bottom=${{currentRect.bottom}}`);
+                        continue;
+                    }}
+
+                    const visualSpace = siblingRect.bottom - currentRect.bottom;
+                    spaceBelow += visualSpace;
+                    _log(`  below: ${{tag}}#${{sibling.id || '(no id)'}}, visualSpace=${{visualSpace}}`);
+
+                    currentRect = {{ bottom: siblingRect.bottom, top: currentRect.top }};
                 }}
 
-                const visualSpace = siblingRect.bottom - currentRect.bottom;
-                spaceBelow += visualSpace;
-                _log(`  below: ${{tag}}#${{sibling.id || '(no id)'}}, visualSpace=${{visualSpace}}`);
-
-                currentRect = {{ bottom: siblingRect.bottom, top: currentRect.top }};
+                spaceBelow += paddingBottom + borderBottom + marginBottom;
+            }} else {{
+                _log(`  flex-row parent — skipping all siblings`);
             }}
-
-            spaceBelow += paddingBottom + borderBottom + marginBottom;
 
             {container_break}
 
