@@ -35,6 +35,7 @@ def main():
     import demos.sibling_observer as sibling_demo
     import demos.table_layout as table_demo
     import demos.constrained as constrained_demo
+    import demos.dual_columns as dual_columns_demo
 
     print("\n" + "=" * 70)
     print("Initializing cjm-fasthtml-viewport-fit Demo")
@@ -57,9 +58,11 @@ def main():
     sibling = sibling_demo.setup()
     table = table_demo.setup()
     constrained = constrained_demo.setup()
+    dual_columns = dual_columns_demo.setup()
     print(f"  Sibling observer demo: {sibling['title']}")
     print(f"  Table layout demo: {table['title']}")
     print(f"  Constrained demo: {constrained['title']}")
+    print(f"  Dual columns demo: {dual_columns['title']}")
 
     # -------------------------------------------------------------------------
     # Page routes
@@ -99,8 +102,14 @@ def main():
                         badges=constrained['badges'],
                         href=demo_constrained.to(),
                     ),
+                    _demo_card(
+                        dual_columns['title'],
+                        dual_columns['description'],
+                        badges=dual_columns['badges'],
+                        href=demo_dual_columns.to(),
+                    ),
                     cls=combine_classes(
-                        grid_display, grid_cols(1), grid_cols(3).md, gap(6), m.b(8)
+                        grid_display, grid_cols(1), grid_cols(2).md, gap(6), m.b(8)
                     )
                 ),
 
@@ -172,6 +181,14 @@ def main():
             wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
         )
 
+    @router
+    def demo_dual_columns(request):
+        """Dual columns demo page."""
+        return handle_htmx_request(
+            request, dual_columns['page_content'],
+            wrap_fn=lambda content: wrap_with_layout(content, navbar=navbar)
+        )
+
     # -------------------------------------------------------------------------
     # Navbar & route registration
     # -------------------------------------------------------------------------
@@ -183,6 +200,7 @@ def main():
             ("Sibling Observer", demo_sibling),
             ("Table Layout", demo_table),
             ("Constrained", demo_constrained),
+            ("Dual Columns", demo_dual_columns),
         ],
         home_route=index,
         theme_selector=True

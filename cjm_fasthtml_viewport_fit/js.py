@@ -79,11 +79,14 @@ def generate_space_below_js(
 
                     currentRect = {{ bottom: siblingRect.bottom, top: currentRect.top }};
                 }}
-
-                spaceBelow += paddingBottom + borderBottom + marginBottom;
             }} else {{
                 _log(`  flex-row parent — skipping all siblings`);
             }}
+
+            // Parent padding/border/margin are always below content,
+            // regardless of whether the parent is flex-row or flex-col.
+            // Only sibling enumeration is skipped for flex-row parents.
+            spaceBelow += paddingBottom + borderBottom + marginBottom;
 
             {container_break}
 
