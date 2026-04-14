@@ -1,0 +1,222 @@
+[
+  {
+    "objectID": "components.html",
+    "href": "components.html",
+    "title": "components",
+    "section": "",
+    "text": "Returns a FastHTML Script element containing the complete viewport-fit JS. Include this in the page alongside the target element.\n\n\n\n\ndef render_viewport_fit_script(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;Any: # Script element with complete viewport-fit JS\n\nRender a Script element with the complete viewport-fit measurement JS.",
+    "crumbs": [
+      "components"
+    ]
+  },
+  {
+    "objectID": "components.html#render-viewport-fit-script",
+    "href": "components.html#render-viewport-fit-script",
+    "title": "components",
+    "section": "",
+    "text": "Returns a FastHTML Script element containing the complete viewport-fit JS. Include this in the page alongside the target element.\n\n\n\n\ndef render_viewport_fit_script(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;Any: # Script element with complete viewport-fit JS\n\nRender a Script element with the complete viewport-fit measurement JS.",
+    "crumbs": [
+      "components"
+    ]
+  },
+  {
+    "objectID": "components.html#tests",
+    "href": "components.html#tests",
+    "title": "components",
+    "section": "Tests",
+    "text": "Tests\n\nfrom fasthtml.common import to_xml\n\ncfg = ViewportFitConfig(namespace=\"test\", target_id=\"my-target\")\nscript = render_viewport_fit_script(cfg)\nhtml = to_xml(script)\n\n# Verify it's a script tag\nassert html.startswith(\"&lt;script&gt;\")\nassert html.endswith(\"&lt;/script&gt;\")\n\n# Verify content includes key functions\nassert \"_calculateAndSetHeight\" in html\nassert \"recalculateTestHeight\" in html\n\n# Namespace isolation: two configs produce different handler keys\ncfg_a = ViewportFitConfig(namespace=\"alpha\", target_id=\"a\")\ncfg_b = ViewportFitConfig(namespace=\"beta\", target_id=\"b\")\nhtml_a = to_xml(render_viewport_fit_script(cfg_a))\nhtml_b = to_xml(render_viewport_fit_script(cfg_b))\nassert \"_vfResizeHandler_alpha\" in html_a\nassert \"_vfResizeHandler_beta\" in html_b\nassert \"_vfResizeHandler_alpha\" not in html_b\n\nprint(\"All tests passed!\")\n\nAll tests passed!",
+    "crumbs": [
+      "components"
+    ]
+  },
+  {
+    "objectID": "js.html",
+    "href": "js.html",
+    "title": "js",
+    "section": "",
+    "text": "Conditional logging controlled by a window-level debug flag.\n\n\n\n\ndef generate_debug_helpers_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS debug helper closures\n\nGenerate debug logging helpers conditional on a window flag.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#debug-helpers",
+    "href": "js.html#debug-helpers",
+    "title": "js",
+    "section": "",
+    "text": "Conditional logging controlled by a window-level debug flag.\n\n\n\n\ndef generate_debug_helpers_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS debug helper closures\n\nGenerate debug logging helpers conditional on a window flag.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#space-below-measurement",
+    "href": "js.html#space-below-measurement",
+    "title": "js",
+    "section": "Space Below Measurement",
+    "text": "Space Below Measurement\nWalks the DOM tree upward from the target element, measuring sibling elements positioned below and accumulating parent padding/borders. Uses position-based detection to correctly handle flex/grid rows where siblings may be beside rather than below.\n\n\ngenerate_space_below_js\n\ndef generate_space_below_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS function for DOM-walking space measurement\n\nGenerate JS that walks the DOM tree to measure space below a target element.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#height-calculation",
+    "href": "js.html#height-calculation",
+    "title": "js",
+    "section": "Height Calculation",
+    "text": "Height Calculation\nTemporarily collapses the target element to 0px to measure its natural top position, then calculates the remaining viewport height after accounting for space above and below.\nWhen the target has padding/border, collapsing to height: 0 still leaves a non-zero rendered box. The algorithm accounts for this by measuring the collapsed box height and adjusting based on box-sizing: - content-box (default): applied height is added ON TOP of padding+border, so subtract the collapsed height - border-box: applied height INCLUDES padding+border, so use the raw measurement\n\n\ngenerate_calculate_height_js\n\ndef generate_calculate_height_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS function for collapse-measure-apply height calculation\n\nGenerate JS that measures and applies viewport-fitted height to the target element.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#resize-handler",
+    "href": "js.html#resize-handler",
+    "title": "js",
+    "section": "Resize Handler",
+    "text": "Resize Handler\nSynchronous window resize listener with cleanup for HTMX re-execution. Runs _calculateAndSetHeight() directly in the resize event handler for same-frame response — no debounce delay. Modern browsers already throttle resize events to animation frames.\n\n\ngenerate_resize_handler_js\n\ndef generate_resize_handler_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS for synchronous resize listener with cleanup\n\nGenerate synchronous window resize handler with HTMX-safe cleanup.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#htmx-settle-handler",
+    "href": "js.html#htmx-settle-handler",
+    "title": "js",
+    "section": "HTMX Settle Handler",
+    "text": "HTMX Settle Handler\nRemeasures on htmx:afterSettle events. Returns empty string if disabled.\n\n\ngenerate_htmx_settle_js\n\ndef generate_htmx_settle_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS for HTMX afterSettle recalculation (empty if disabled)\n\nGenerate HTMX afterSettle handler for recalculation on SPA navigation.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#sibling-resizeobserver",
+    "href": "js.html#sibling-resizeobserver",
+    "title": "js",
+    "section": "Sibling ResizeObserver",
+    "text": "Sibling ResizeObserver\nWalks up the DOM tree from the target element and watches all visible siblings at every ancestor level for size changes. This mirrors the DOM-walking pattern of _calculateSpaceBelow — any element that contributes to the space calculation is observed.\nRuns _calculateAndSetHeight() synchronously in the ResizeObserver callback. ResizeObserver fires between layout and paint, so the browser paints both the sibling change and the target adjustment in the same frame — no visual desync. A recursion guard prevents infinite loops if the target’s height change were to affect an observed element.\nThe resize_callback is only invoked when the target’s height actually changed, preventing feedback loops when consumers trigger DOM changes (e.g., auto card count adjustment) from the callback.\nReturns empty string if disabled.\n\n\ngenerate_sibling_observer_js\n\ndef generate_sibling_observer_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS for ResizeObserver on ancestor-level siblings (empty if disabled)\n\nGenerate ResizeObserver that walks the DOM tree and watches visible siblings at all ancestor levels.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#initialization",
+    "href": "js.html#initialization",
+    "title": "js",
+    "section": "Initialization",
+    "text": "Initialization\nRuns on first script execution with optional scroll-to-top for consistent HTMX SPA measurements.\n\n\ngenerate_init_js\n\ndef generate_init_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # JS initialization block\n\nGenerate JS for initial measurement on script execution.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#top-level-compositor",
+    "href": "js.html#top-level-compositor",
+    "title": "js",
+    "section": "Top-Level Compositor",
+    "text": "Top-Level Compositor\nAssembles all JS fragments into a self-contained IIFE. Exposes a global recalculate function for manual invocation.\n\n\ngenerate_viewport_fit_js\n\ndef generate_viewport_fit_js(\n    config:ViewportFitConfig, # Instance configuration\n)-&gt;str: # Complete JS code as a self-contained IIFE\n\nGenerate the complete viewport-fit JS as a self-contained IIFE.",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "js.html#tests",
+    "href": "js.html#tests",
+    "title": "js",
+    "section": "Tests",
+    "text": "Tests\n\nfrom cjm_fasthtml_viewport_fit.models import ViewportFitConfig\n\n# Default config\ncfg = ViewportFitConfig(namespace=\"test\", target_id=\"my-target\")\njs = generate_viewport_fit_js(cfg)\n\n# Verify IIFE wrapper\nassert js.startswith(\"(function() {\")\nassert js.endswith(\"})();\")\n\n# Verify core functions present\nassert \"_calculateSpaceBelow\" in js\nassert \"_calculateAndSetHeight\" in js\n\n# Verify target ID used\nassert \"'my-target'\" in js\n\n# Verify global recalculate function exposed\nassert \"window.recalculateTestHeight = _calculateAndSetHeight\" in js\n\n# Verify synchronous resize handler with reentry guard\nassert \"_vfResizeHandler_test\" in js\nassert \"_onWindowResize\" in js\nassert \"_resizing\" in js\n\n# Verify HTMX settle handler present (enabled by default)\nassert \"htmx:afterSettle\" in js\nassert \"_vfSettleHandler_test\" in js\n\n# Verify sibling ResizeObserver with ancestor-walking\nassert \"ResizeObserver\" in js\nassert \"_vfSiblingObserver_test\" in js\nassert \"_setupSiblingObserver\" in js\n# Verify ancestor-level walking (while loop up to document root)\nassert \"parent !== document.documentElement\" in js\nassert \"currentElement = parent\" in js\nassert \"'observing L'\" in js\n# Verify synchronous recalculation with recursion guard\nassert \"_recalculating\" in js\nassert \"_onResize\" in js\n\n# Verify scroll-to-top present (enabled by default)\nassert \"window.scrollTo(0, 0)\" in js\n\n# Verify min height used\nassert \"Math.max(200,\" in js\n\n# Verify box-sizing adjustment for padding/border\nassert \"collapsedHeight\" in js\nassert \"boxSizing\" in js\nassert \"boxAdjust\" in js\n\n# Verify debug flag NOT enabled by default\nassert \"viewportFitDebug_test = true\" not in js\nassert \"viewportFitDebug_test\" in js  # but referenced for checking\n\n# Verify default uses window.innerHeight (no container)\nassert \"window.innerHeight\" in js\nassert \"_container\" not in js\n\nprint(\"Default config tests passed!\")\n\nDefault config tests passed!\n\n\n\n# Config with inner_id\ncfg_inner = ViewportFitConfig(namespace=\"inner_test\", target_id=\"t\", inner_id=\"t-inner\")\njs_inner = generate_viewport_fit_js(cfg_inner)\nassert \"'t-inner'\" in js_inner\nassert \"if (inner)\" in js_inner\n\n# Config without inner_id — no inner references\ncfg_no_inner = ViewportFitConfig(namespace=\"no_inner\", target_id=\"t\")\njs_no_inner = generate_viewport_fit_js(cfg_no_inner)\nassert \"'t-inner'\" not in js_no_inner\n\nprint(\"Inner ID tests passed!\")\n\nInner ID tests passed!\n\n\n\n# HTMX settle disabled\ncfg_no_htmx = ViewportFitConfig(namespace=\"nohtmx\", target_id=\"t\", enable_htmx_settle=False)\njs_no_htmx = generate_viewport_fit_js(cfg_no_htmx)\nassert \"htmx:afterSettle\" not in js_no_htmx\nassert \"_vfSettleHandler\" not in js_no_htmx\n\n# Sibling observer disabled\ncfg_no_obs = ViewportFitConfig(namespace=\"noobs\", target_id=\"t\", observe_siblings=False)\njs_no_obs = generate_viewport_fit_js(cfg_no_obs)\nassert \"ResizeObserver\" not in js_no_obs\nassert \"_vfSiblingObserver\" not in js_no_obs\n\n# Scroll-to-top disabled\ncfg_no_scroll = ViewportFitConfig(namespace=\"noscroll\", target_id=\"t\", scroll_to_top=False)\njs_no_scroll = generate_viewport_fit_js(cfg_no_scroll)\nassert \"window.scrollTo\" not in js_no_scroll\n\n# Debug enabled by default\ncfg_debug = ViewportFitConfig(namespace=\"dbg\", target_id=\"t\", debug=True)\njs_debug = generate_viewport_fit_js(cfg_debug)\nassert \"viewportFitDebug_dbg = true;\" in js_debug\n\n# Resize callback\ncfg_cb = ViewportFitConfig(namespace=\"cb\", target_id=\"t\", resize_callback=\"myApp.onResize();\")\njs_cb = generate_viewport_fit_js(cfg_cb)\nassert \"myApp.onResize();\" in js_cb\n\n# Custom min height\ncfg_min = ViewportFitConfig(namespace=\"min\", target_id=\"t\", min_height=300)\njs_min = generate_viewport_fit_js(cfg_min)\nassert \"Math.max(300,\" in js_min\n\nprint(\"Feature flag tests passed!\")\n\n\n# Container mode\ncfg_cont = ViewportFitConfig(namespace=\"cont\", target_id=\"t\", container_id=\"my-box\")\njs_cont = generate_viewport_fit_js(cfg_cont)\n\n# Container lookup present\nassert \"getElementById('my-box')\" in js_cont\nassert \"_container\" in js_cont\n\n# Uses container rect instead of window.innerHeight\nassert \"containerRect\" in js_cont\nassert \"containerRect.height\" in js_cont\nassert \"targetRect.top - containerRect.top\" in js_cont\n\n# Space below and sibling observer process container level then break\nassert \"if (parent === _container) break;\" in js_cont\n\n# Sibling observer observes the container itself\nassert \"observer.observe(_container)\" in js_cont\n\n# No container mode — uses window.innerHeight, no break\ncfg_no_cont = ViewportFitConfig(namespace=\"nc\", target_id=\"t\")\njs_no_cont = generate_viewport_fit_js(cfg_no_cont)\nassert \"_container\" not in js_no_cont\nassert \"window.innerHeight\" in js_no_cont\nassert \"containerRect\" not in js_no_cont\nassert \"if (parent === _container) break;\" not in js_no_cont\n\nprint(\"Container mode tests passed!\")",
+    "crumbs": [
+      "js"
+    ]
+  },
+  {
+    "objectID": "index.html",
+    "href": "index.html",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "",
+    "text": "pip install cjm_fasthtml_viewport_fit",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "index.html#install",
+    "href": "index.html#install",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "",
+    "text": "pip install cjm_fasthtml_viewport_fit",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "index.html#project-structure",
+    "href": "index.html#project-structure",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "Project Structure",
+    "text": "Project Structure\nnbs/\n├── components.ipynb # FastHTML component for rendering the viewport-fit measurement script\n├── js.ipynb         # JavaScript generation functions for viewport height measurement\n└── models.ipynb     # Configuration dataclass for viewport-fit measurement instances\nTotal: 3 notebooks",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "index.html#module-dependencies",
+    "href": "index.html#module-dependencies",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "Module Dependencies",
+    "text": "Module Dependencies\ngraph LR\n    components[components&lt;br/&gt;components]\n    js[js&lt;br/&gt;js]\n    models[models&lt;br/&gt;models]\n\n    components --&gt; models\n    components --&gt; js\n    js --&gt; models\n3 cross-module dependencies detected",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "index.html#cli-reference",
+    "href": "index.html#cli-reference",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "CLI Reference",
+    "text": "CLI Reference\nNo CLI commands found in this project.",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "index.html#module-overview",
+    "href": "index.html#module-overview",
+    "title": "cjm-fasthtml-viewport-fit",
+    "section": "Module Overview",
+    "text": "Module Overview\nDetailed documentation for each module in the project:\n\ncomponents (components.ipynb)\n\nFastHTML component for rendering the viewport-fit measurement script\n\n\nImport\nfrom cjm_fasthtml_viewport_fit.components import (\n    render_viewport_fit_script\n)\n\n\nFunctions\ndef render_viewport_fit_script(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; Any:  # Script element with complete viewport-fit JS\n    \"Render a Script element with the complete viewport-fit measurement JS.\"\n\n\n\njs (js.ipynb)\n\nJavaScript generation functions for viewport height measurement\n\n\nImport\nfrom cjm_fasthtml_viewport_fit.js import (\n    generate_debug_helpers_js,\n    generate_space_below_js,\n    generate_calculate_height_js,\n    generate_resize_handler_js,\n    generate_htmx_settle_js,\n    generate_sibling_observer_js,\n    generate_init_js,\n    generate_viewport_fit_js\n)\n\n\nFunctions\ndef generate_debug_helpers_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS debug helper closures\n    \"Generate debug logging helpers conditional on a window flag.\"\ndef generate_space_below_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS function for DOM-walking space measurement\n    \"Generate JS that walks the DOM tree to measure space below a target element.\"\ndef generate_calculate_height_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS function for collapse-measure-apply height calculation\n    \"Generate JS that measures and applies viewport-fitted height to the target element.\"\ndef generate_resize_handler_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS for synchronous resize listener with cleanup\n    \"Generate synchronous window resize handler with HTMX-safe cleanup.\"\ndef generate_htmx_settle_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS for HTMX afterSettle recalculation (empty if disabled)\n    \"Generate HTMX afterSettle handler for recalculation on SPA navigation.\"\ndef generate_sibling_observer_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS for ResizeObserver on ancestor-level siblings (empty if disabled)\n    \"Generate ResizeObserver that walks the DOM tree and watches visible siblings at all ancestor levels.\"\ndef generate_init_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # JS initialization block\n    \"Generate JS for initial measurement on script execution.\"\ndef generate_viewport_fit_js(\n    config: ViewportFitConfig,  # Instance configuration\n) -&gt; str:  # Complete JS code as a self-contained IIFE\n    \"Generate the complete viewport-fit JS as a self-contained IIFE.\"\n\n\n\nmodels (models.ipynb)\n\nConfiguration dataclass for viewport-fit measurement instances\n\n\nImport\nfrom cjm_fasthtml_viewport_fit.models import (\n    ViewportFitConfig\n)\n\n\nClasses\n@dataclass\nclass ViewportFitConfig:\n    \"Configuration for a viewport-fit measurement instance.\"\n    \n    namespace: str  # Unique prefix for JS isolation (e.g., \"source_select\")\n    target_id: str  # HTML ID of the element to fit to viewport height\n    inner_id: str = ''  # Optional child element that also receives the calculated height\n    container_id: str = ''  # Optional container element — measure against this instead of viewport\n    min_height: int = 200  # Minimum height in pixels\n    debounce_ms: int = 100  # Resize debounce delay in milliseconds\n    scroll_to_top: bool = True  # Scroll to (0,0) before measuring (for HTMX SPAs)\n    enable_htmx_settle: bool = True  # Remeasure on htmx:afterSettle events\n    observe_siblings: bool = True  # Watch sibling elements for size changes via ResizeObserver\n    resize_callback: str = ''  # Optional JS expression called after resize\n    debug: bool = False  # Enable debug console logging by default\n    \n    def ns(self) -&gt; str:  # Capitalized namespace for JS function names\n            \"\"\"Capitalized namespace for JS function names.\"\"\"\n            return \"\".join(p.capitalize() for p in self.namespace.split(\"_\"))\n    \n        @property\n        def handler_key(self) -&gt; str:  # Window-level key for resize handler cleanup\n        \"Capitalized namespace for JS function names.\"\n    \n    def handler_key(self) -&gt; str:  # Window-level key for resize handler cleanup\n            \"\"\"Window-level key for resize handler cleanup.\"\"\"\n            return f\"_vfResizeHandler_{self.namespace.replace('-', '_')}\"\n    \n        @property\n        def settle_handler_key(self) -&gt; str:  # Window-level key for HTMX settle handler\n        \"Window-level key for resize handler cleanup.\"\n    \n    def settle_handler_key(self) -&gt; str:  # Window-level key for HTMX settle handler\n            \"\"\"Window-level key for HTMX settle handler cleanup.\"\"\"\n            return f\"_vfSettleHandler_{self.namespace.replace('-', '_')}\"\n    \n        @property\n        def observer_key(self) -&gt; str:  # Window-level key for ResizeObserver cleanup\n        \"Window-level key for HTMX settle handler cleanup.\"\n    \n    def observer_key(self) -&gt; str:  # Window-level key for ResizeObserver cleanup\n            \"\"\"Window-level key for sibling ResizeObserver cleanup.\"\"\"\n            return f\"_vfSiblingObserver_{self.namespace.replace('-', '_')}\"\n    \n        @property\n        def debug_flag(self) -&gt; str:  # JS window debug flag name\n        \"Window-level key for sibling ResizeObserver cleanup.\"\n    \n    def debug_flag(self) -&gt; str:  # JS window debug flag name\n            \"\"\"Window-level debug flag name.\"\"\"\n            return f\"viewportFitDebug_{self.namespace.replace('-', '_')}\"\n    \n        @property\n        def log_prefix(self) -&gt; str:  # Console log prefix string\n        \"Window-level debug flag name.\"\n    \n    def log_prefix(self) -&gt; str:  # Console log prefix string\n            \"\"\"Console log prefix string.\"\"\"\n            return f\"vf:{self.namespace}\"\n    \n        @property\n        def recalc_fn(self) -&gt; str:  # Global function name for manual recalculation\n        \"Console log prefix string.\"\n    \n    def recalc_fn(self) -&gt; str:  # Global function name for manual recalculation\n        \"Global function name for manual recalculation.\"",
+    "crumbs": [
+      "cjm-fasthtml-viewport-fit"
+    ]
+  },
+  {
+    "objectID": "models.html",
+    "href": "models.html",
+    "title": "models",
+    "section": "",
+    "text": "Central configuration for a viewport-fit measurement instance. Each instance manages a single target element, fitting its height to the remaining viewport space. Multiple instances can coexist on the same page via namespace isolation.\n\n\n\n\ndef ViewportFitConfig(\n    namespace:str, target_id:str, inner_id:str='', container_id:str='', min_height:int=200, debounce_ms:int=100,\n    scroll_to_top:bool=True, enable_htmx_settle:bool=True, observe_siblings:bool=True, resize_callback:str='',\n    debug:bool=False\n)-&gt;None:\n\nConfiguration for a viewport-fit measurement instance.",
+    "crumbs": [
+      "models"
+    ]
+  },
+  {
+    "objectID": "models.html#viewportfitconfig",
+    "href": "models.html#viewportfitconfig",
+    "title": "models",
+    "section": "",
+    "text": "Central configuration for a viewport-fit measurement instance. Each instance manages a single target element, fitting its height to the remaining viewport space. Multiple instances can coexist on the same page via namespace isolation.\n\n\n\n\ndef ViewportFitConfig(\n    namespace:str, target_id:str, inner_id:str='', container_id:str='', min_height:int=200, debounce_ms:int=100,\n    scroll_to_top:bool=True, enable_htmx_settle:bool=True, observe_siblings:bool=True, resize_callback:str='',\n    debug:bool=False\n)-&gt;None:\n\nConfiguration for a viewport-fit measurement instance.",
+    "crumbs": [
+      "models"
+    ]
+  },
+  {
+    "objectID": "models.html#tests",
+    "href": "models.html#tests",
+    "title": "models",
+    "section": "Tests",
+    "text": "Tests\n\n# Single-word namespace\ncfg = ViewportFitConfig(namespace=\"demo\", target_id=\"my-target\")\nassert cfg.ns == \"Demo\"\nassert cfg.handler_key == \"_vfResizeHandler_demo\"\nassert cfg.settle_handler_key == \"_vfSettleHandler_demo\"\nassert cfg.observer_key == \"_vfSiblingObserver_demo\"\nassert cfg.debug_flag == \"viewportFitDebug_demo\"\nassert cfg.log_prefix == \"vf:demo\"\nassert cfg.recalc_fn == \"recalculateDemoHeight\"\n\n# Multi-word namespace\ncfg2 = ViewportFitConfig(namespace=\"source_select\", target_id=\"tss-grid\")\nassert cfg2.ns == \"SourceSelect\"\nassert cfg2.recalc_fn == \"recalculateSourceSelectHeight\"\nassert cfg2.handler_key == \"_vfResizeHandler_source_select\"\n\n# Hyphenated namespace\ncfg3 = ViewportFitConfig(namespace=\"card-stack\", target_id=\"cs-0\")\nassert cfg3.handler_key == \"_vfResizeHandler_card_stack\"\nassert cfg3.observer_key == \"_vfSiblingObserver_card_stack\"\nassert cfg3.debug_flag == \"viewportFitDebug_card_stack\"\n\n# Defaults\nassert cfg.min_height == 200\nassert cfg.debounce_ms == 100\nassert cfg.scroll_to_top == True\nassert cfg.enable_htmx_settle == True\nassert cfg.observe_siblings == True\nassert cfg.resize_callback == \"\"\nassert cfg.inner_id == \"\"\nassert cfg.container_id == \"\"\nassert cfg.debug == False\n\n# Container ID\ncfg_c = ViewportFitConfig(namespace=\"cont\", target_id=\"t\", container_id=\"my-box\")\nassert cfg_c.container_id == \"my-box\"\n\nprint(\"All tests passed!\")",
+    "crumbs": [
+      "models"
+    ]
+  }
+]
