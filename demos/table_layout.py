@@ -17,7 +17,8 @@ Structure under test:
                   └── ...
 """
 
-from fasthtml.common import Div, H2, P, Span, Button, Script, APIRouter
+from fasthtml.common import Div, H2, P, Span, Button, Script
+from cjm_fasthtml_app_core.core.routing import APIRouter
 
 from cjm_fasthtml_daisyui.utilities.semantic_colors import bg_dui, text_dui, border_dui
 from cjm_fasthtml_daisyui.components.data_display.badge import badge, badge_colors
